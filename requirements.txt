@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+requests
+pydantic
+pydantic-settings
+google-generativeai
+python-dotenv
