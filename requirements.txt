@@ -6,3 +6,6 @@ pydantic-settings
 google-generativeai
 python-dotenv
 joblib
+scikit-learn
+numpy
+pandas
