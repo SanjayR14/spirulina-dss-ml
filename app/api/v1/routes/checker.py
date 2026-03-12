@@ -90,7 +90,34 @@ def predict_biomass(site_profile):
 def geocode_place(place_name):
     """
     Fetch latitude and longitude for a place name using OpenStreetMap Nominatim.
+
+    This helper also understands raw coordinates so that clients can bypass
+    the geocoding step when they already know the lat/lon pair (for example,
+    after clicking on a map).  Acceptable input formats include:
+      - "12.345,67.890"
+      - "12.345 67.890"
+      - "Lat 12.345, Lng 67.890" (common frontend fallback)
+
+    If the string appears to be numeric coordinates, we simply parse and
+    return them.  Otherwise we fall back to Nominatim search as before.
     """
+    # first check if the user already passed a coordinate pair
+    import re
+
+    # strip common labels and whitespace
+    cleaned = place_name.replace("Lat", "").replace("lat", "")
+    cleaned = cleaned.replace("Lng", "").replace("lng", "").strip()
+    # regex matches two floats separated by comma or space
+    coord_match = re.match(r"^\s*([-+]?[0-9]*\.?[0-9]+)\s*,?\s*([-+]?[0-9]*\.?[0-9]+)\s*$", cleaned)
+    if coord_match:
+        try:
+            lat = float(coord_match.group(1))
+            lon = float(coord_match.group(2))
+            return lat, lon, None
+        except ValueError:
+            # fall through to normal geocoding
+            pass
+
     url = "https://nominatim.openstreetmap.org/search"
     params = {
         "q": place_name,
