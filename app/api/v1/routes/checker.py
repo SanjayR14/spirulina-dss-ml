@@ -301,20 +301,34 @@ def llm_generate_summary(site_profile):
 
 # --- Updated Main Orchestrator ---
 def analyze_location(place_name: str):
+    """
+    High-level orchestration that:
+    - Geocodes the place name
+    - Builds a full site profile (climate, water profile, cultivation status)
+    - Runs the Spirulina biomass ML model
+    - Generates a PhD-style narrative report with the LLM
+
+    Returned structure is intentionally rich so that downstream services
+    (Node backend, React dashboard) can drive charts directly from these
+    dynamic values instead of hard-coded placeholders.
+    """
     lat, lon, error = geocode_place(place_name)
-    if error: return {"error": error}
-    
+    if error:
+        return {"error": error}
+
+    # Full site profile, including NASA POWER climate data
     site_profile = generate_site_profile(lat, lon)
-    
-    # Predict biomass based on site profile
+
+    # Predict biomass / productivity based on the site profile
     biomass_result = predict_biomass(site_profile)
-    
+
     # The LLM now handles all "Suggestions" and "Improvements"
     summary = llm_generate_summary(site_profile)
-    
+
     return {
         "place": place_name,
         "coordinates": {"lat": lat, "lon": lon},
+        "site_profile": site_profile,
         "biomass_prediction": biomass_result,
-        "report": summary
+        "report": summary,
     }
